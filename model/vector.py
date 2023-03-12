@@ -1,8 +1,10 @@
+import copy
+
 class Vector:
-    def __init__(self, *args: float):
+    def __init__(self, *args):
         vector = []
         for i in range(len(args)):
-            vector[i] = args[i]
+            vector.append(args[i])
 
         self.dimension = len(vector)
         self.vector = vector
@@ -10,8 +12,27 @@ class Vector:
     def __repr__(self):
         temp = "<"
         for i in self.vector[:-1]:
-            temp = temp + i + ", "
-        return temp + f", {self.vector[-1]}>"
+            temp = temp + str(i) + ", "
+        return temp + f"{self.vector[-1]}>"
+
+    @staticmethod
+    def scale(v, n: float):
+        for i in range(v.dimension):
+            v.vector[i] = v.vector[i]*n
+        return v
+
+    @staticmethod
+    def add_vector(v1, v2):
+        nv1 = copy.deepcopy(v1)
+        nv2 = copy.deepcopy(v2)
+        if v1.dimension < v2.dimension:
+            nv1 = vector_correction(v1, v2.dimension)
+        else:
+            nv2 = vector_correction(v2, v1.dimension)
+        for i in range(v1.dimension):
+            nv1.vector[i] += nv2.vector[i]
+        return nv1
+
 
     @staticmethod
     def dot(v1, v2):
@@ -31,17 +52,27 @@ class Vector:
         assert v2.dimension <= 3, f"second vector cannot be expressed in 3 dimensions"
 
         cross_product = []
-        vector_less_than_3_correction(v1)
-        vector_less_than_3_correction(v2)
+        vf = copy.deepcopy(v1)
+        v1 = vector_less_than_3_correction(v1).vector
+        v2 = vector_less_than_3_correction(v2).vector
 
-        cross_product[0] = v1[2]*v2[3] - v2[2]*v1[3]
-        cross_product[1] = v2[1] * v1[3] - v1[1] * v2[3]
-        cross_product[2] = v1[1] * v2[2] - v2[1] * v1[2]
-        return cross_product
+        cross_product.append(v1[1]*v2[2] - v2[1]*v1[2])
+        cross_product.append(v2[0] * v1[2] - v1[0] * v2[2])
+        cross_product.append(v1[0] * v2[1] - v2[0] * v1[1])
+        vf.dimension = 3
+        vf.vector = cross_product
+        return vf
 
 
 def vector_less_than_3_correction(v: Vector):
-    if v.dimension < 3:
-        for i in range(3):
-            if i >= v.dimension:
-                v[i] = 0
+    return vector_correction(v, 3)
+
+
+def vector_correction(v: Vector, n: float):
+    v0 = copy.deepcopy(v)
+    if v0.dimension < n:
+        for i in range(n):
+            if i >= v0.dimension:
+                v0.vector.append(0)
+                v0.dimension += 1
+    return v0
